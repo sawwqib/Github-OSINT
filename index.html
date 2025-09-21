@@ -1,0 +1,943 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GitHub OSINT</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #0d1117 0%, #161b22 100%);
+            color: #c9d1d9;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            padding: 30px 0;
+            margin-bottom: 30px;
+        }
+        
+        h1 {
+            font-size: 2.8rem;
+            background: linear-gradient(90deg, #58a6ff 0%, #8e96ff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+        
+        .tagline {
+            font-size: 1.2rem;
+            color: #8b949e;
+            margin-bottom: 30px;
+        }
+        
+        .search-box {
+            background: rgba(13, 17, 23, 0.8);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+            border: 1px solid #30363d;
+            text-align: center;
+        }
+        
+        .input-group {
+            display: flex;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        input {
+            flex: 1;
+            padding: 15px 20px;
+            border: none;
+            background: #0d1117;
+            border-radius: 8px 0 0 8px;
+            color: #c9d1d9;
+            font-size: 1rem;
+            border: 1px solid #30363d;
+            border-right: none;
+        }
+        
+        button {
+            padding: 15px 25px;
+            background: linear-gradient(90deg, #238636 0%, #2ea043 100%);
+            color: white;
+            border: none;
+            border-radius: 0 8px 8px 0;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+        
+        button:hover {
+            background: linear-gradient(90deg, #2ea043 0%, #3fb950 100%);
+            transform: translateY(-2px);
+        }
+        
+        .results {
+            display: none;
+            background: rgba(13, 17, 23, 0.8);
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+            border: 1px solid #30363d;
+        }
+        
+        .user-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #30363d;
+        }
+        
+        .avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            margin-right: 25px;
+            border: 3px solid #58a6ff;
+        }
+        
+        .user-info h2 {
+            font-size: 1.8rem;
+            margin-bottom: 5px;
+            color: #58a6ff;
+        }
+        
+        .user-info p {
+            color: #8b949e;
+            margin-bottom: 10px;
+        }
+        
+        .bio {
+            margin: 15px 0;
+            line-height: 1.6;
+            color: #c9d1d9;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-box {
+            background: #0d1117;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            border: 1px solid #30363d;
+            transition: transform 0.3s ease;
+        }
+        
+        .stat-box:hover {
+            transform: translateY(-5px);
+            border-color: #58a6ff;
+        }
+        
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #58a6ff;
+            margin-bottom: 5px;
+        }
+        
+        .stat-label {
+            color: #8b949e;
+            font-size: 0.9rem;
+        }
+        
+        .repos-container {
+            margin-top: 20px;
+        }
+        
+        .section-title {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            color: #58a6ff;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #30363d;
+        }
+        
+        .repos-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        
+        .repo-card {
+            background: #0d1117;
+            border-radius: 8px;
+            padding: 20px;
+            border: 1px solid #30363d;
+            transition: all 0.3s ease;
+        }
+        
+        .repo-card:hover {
+            transform: translateY(-5px);
+            border-color: #58a6ff;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+        
+        .repo-name {
+            font-size: 1.2rem;
+            color: #58a6ff;
+            margin-bottom: 10px;
+            text-decoration: none;
+            display: block;
+        }
+        
+        .repo-name:hover {
+            text-decoration: underline;
+        }
+        
+        .repo-desc {
+            color: #8b949e;
+            margin-bottom: 15px;
+            line-height: 1.5;
+        }
+        
+        .repo-meta {
+            display: flex;
+            justify-content: space-between;
+            color: #8b949e;
+            font-size: 0.9rem;
+        }
+        
+        .loader {
+            text-align: center;
+            padding: 40px 0;
+            display: none;
+        }
+        
+        .loader i {
+            font-size: 2.5rem;
+            color: #58a6ff;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .error {
+            text-align: center;
+            padding: 20px;
+            background: #da3633;
+            border-radius: 8px;
+            margin-top: 20px;
+            display: none;
+        }
+        
+        .social-links {
+            display: flex;
+            gap: 15px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .social-link {
+            color: #8b949e;
+            text-decoration: none;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            padding: 5px 10px;
+            border: 1px solid #30363d;
+            border-radius: 5px;
+        }
+        
+        .social-link:hover {
+            color: #58a6ff;
+            border-color: #58a6ff;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 20px;
+            color: #8b949e;
+            font-size: 0.9rem;
+            margin-top: 40px;
+        }
+        
+        .last-updated {
+            font-size: 0.8rem;
+            color: #8b949e;
+            margin-top: 10px;
+            text-align: right;
+        }
+        
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #30363d;
+            flex-wrap: wrap;
+        }
+        
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+        }
+        
+        .tab.active {
+            border-bottom: 3px solid #58a6ff;
+            color: #58a6ff;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .activity-day {
+            margin-bottom: 30px;
+        }
+        
+        .activity-date {
+            font-size: 1.2rem;
+            color: #58a6ff;
+            margin-bottom: 15px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid #30363d;
+        }
+        
+        .activity-item {
+            padding: 12px;
+            border-left: 3px solid #30363d;
+            margin: 10px 0;
+            background: rgba(13, 17, 23, 0.5);
+            border-radius: 0 8px 8px 0;
+            display: flex;
+            align-items: flex-start;
+        }
+        
+        .activity-item:hover {
+            border-left-color: #58a6ff;
+            background: rgba(88, 166, 255, 0.1);
+        }
+        
+        .activity-icon {
+            margin-right: 15px;
+            width: 30px;
+            text-align: center;
+            color: #58a6ff;
+            font-size: 1.1rem;
+            padding-top: 2px;
+        }
+        
+        .activity-details {
+            flex: 1;
+        }
+        
+        .activity-time {
+            font-size: 0.85rem;
+            color: #8b949e;
+            margin-top: 5px;
+        }
+        
+        .activity-repo {
+            color: #58a6ff;
+            font-weight: 500;
+        }
+        
+        .language-stats {
+            margin-top: 15px;
+        }
+        
+        .language-bar {
+            height: 8px;
+            background: #30363d;
+            border-radius: 4px;
+            margin: 5px 0;
+            overflow: hidden;
+        }
+        
+        .language-fill {
+            height: 100%;
+            border-radius: 4px;
+        }
+        
+        .language-name {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.9rem;
+        }
+        
+        .activity-empty {
+            text-align: center;
+            padding: 40px;
+            color: #8b949e;
+        }
+        
+        .activity-filter {
+            margin-bottom: 20px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .filter-btn {
+            padding: 8px 16px;
+            background: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 20px;
+            color: #8b949e;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+        
+        .filter-btn.active {
+            background: #58a6ff;
+            color: white;
+            border-color: #58a6ff;
+        }
+        
+        .activity-count {
+            font-size: 0.9rem;
+            color: #8b949e;
+            margin-bottom: 15px;
+        }
+        
+        @media (max-width: 768px) {
+            .user-header {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .avatar {
+                margin-right: 0;
+                margin-bottom: 15px;
+            }
+            
+            .input-group {
+                flex-direction: column;
+            }
+            
+            input {
+                border-radius: 8px;
+                margin-bottom: 10px;
+                border-right: 1px solid #30363d;
+            }
+            
+            button {
+                border-radius: 8px;
+            }
+            
+            .tabs {
+                flex-wrap: wrap;
+            }
+            
+            .tab {
+                padding: 8px 12px;
+                font-size: 0.9rem;
+            }
+            
+            .activity-filter {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>GitHub OSINT</h1>
+            <p class="tagline">Deep analysis of GitHub profiles using public data</p>
+        </header>
+        
+        <div class="search-box">
+            <div class="input-group">
+                <input type="text" id="username" placeholder="Enter GitHub username">
+                <button id="search-btn">Analyze</button>
+            </div>
+        </div>
+        
+        <div class="loader" id="loader">
+            <i class="fas fa-spinner"></i>
+            <p>Fetching GitHub data...</p>
+        </div>
+        
+        <div class="error" id="error">
+            <i class="fas fa-exclamation-circle"></i>
+            <p id="error-message">User not found</p>
+        </div>
+        
+        <div class="results" id="results">
+            <div class="user-header">
+                <img id="avatar" class="avatar" src="" alt="Avatar">
+                <div class="user-info">
+                    <h2 id="name"></h2>
+                    <p id="login"></p>
+                    <p id="location"><i class="fas fa-map-marker-alt"></i> <span id="location-text"></span></p>
+                    <p id="company"><i class="fas fa-building"></i> <span id="company-text"></span></p>
+                    <div class="bio" id="bio"></div>
+                    <div class="social-links">
+                        <a href="#" id="blog" class="social-link" target="_blank" style="display: none;"><i class="fas fa-link"></i> Website</a>
+                        <a href="#" id="twitter" class="social-link" target="_blank" style="display: none;"><i class="fab fa-twitter"></i> Twitter</a>
+                        <a href="#" id="github-link" class="social-link" target="_blank"><i class="fab fa-github"></i> GitHub Profile</a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="stats">
+                <div class="stat-box">
+                    <div class="stat-value" id="public-repos">0</div>
+                    <div class="stat-label">Public Repositories</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value" id="followers">0</div>
+                    <div class="stat-label">Followers</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value" id="following">0</div>
+                    <div class="stat-label">Following</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value" id="account-age">0</div>
+                    <div class="stat-label">Account Age (years)</div>
+                </div>
+            </div>
+            
+            <div class="tabs">
+                <div class="tab active" data-tab="repos">Repositories</div>
+                <div class="tab" data-tab="activity">Recent Activity</div>
+                <div class="tab" data-tab="languages">Language Analysis</div>
+                <div class="tab" data-tab="gists">Gists</div>
+            </div>
+            
+            <div class="tab-content active" id="repos-tab">
+                <h3 class="section-title">Popular Repositories</h3>
+                <div class="repos-grid" id="repos-grid">
+                    <!-- Repositories will be added here by JavaScript -->
+                </div>
+            </div>
+            
+            <div class="tab-content" id="activity-tab">
+                <h3 class="section-title">Recent Public Activity</h3>
+                <div class="activity-filter" id="activity-filter">
+                    <button class="filter-btn active" data-filter="all">All Activity</button>
+                    <button class="filter-btn" data-filter="PushEvent">Commits</button>
+                    <button class="filter-btn" data-filter="CreateEvent">Creates</button>
+                    <button class="filter-btn" data-filter="WatchEvent">Stars</button>
+                    <button class="filter-btn" data-filter="ForkEvent">Forks</button>
+                    <button class="filter-btn" data-filter="IssuesEvent">Issues</button>
+                </div>
+                <div class="activity-count" id="activity-count"></div>
+                <div id="activity-list">
+                    <!-- Activity will be added here by JavaScript -->
+                </div>
+            </div>
+            
+            <div class="tab-content" id="languages-tab">
+                <h3 class="section-title">Programming Language Analysis</h3>
+                <div id="language-stats">
+                    <!-- Language stats will be added here by JavaScript -->
+                </div>
+            </div>
+            
+            <div class="tab-content" id="gists-tab">
+                <h3 class="section-title">Public Gists</h3>
+                <div id="gists-list">
+                    <!-- Gists will be added here by JavaScript -->
+                </div>
+            </div>
+            
+            <p class="last-updated" id="last-updated"></p>
+        </div>
+        
+        <footer>
+            <p>Made With &hearts; By Saqib</p>
+        </footer>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchBtn = document.getElementById('search-btn');
+            const usernameInput = document.getElementById('username');
+            const resultsDiv = document.getElementById('results');
+            const loaderDiv = document.getElementById('loader');
+            const errorDiv = document.getElementById('error');
+            const tabs = document.querySelectorAll('.tab');
+            let allEventsData = [];
+            
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    tabs.forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                    
+                    document.querySelectorAll('.tab-content').forEach(content => {
+                        content.classList.remove('active');
+                    });
+                    
+                    document.getElementById(`${tab.dataset.tab}-tab`).classList.add('active');
+                });
+            });
+
+            usernameInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    searchBtn.click();
+                }
+            });
+
+            setTimeout(() => {
+                searchBtn.click();
+            }, 500);
+            
+            searchBtn.addEventListener('click', function() {
+                const username = usernameInput.value.trim();
+                if (username) {
+                    fetchUserData(username);
+                }
+            });
+            
+            async function fetchUserData(username) {
+
+                loaderDiv.style.display = 'block';
+                resultsDiv.style.display = 'none';
+                errorDiv.style.display = 'none';
+                
+                try {
+
+                    const userResponse = await fetch(`https://api.github.com/users/${username}`);
+                    
+                    if (!userResponse.ok) {
+                        if (userResponse.status === 404) {
+                            throw new Error('User not found');
+                        } else {
+                            throw new Error('Failed to fetch user data');
+                        }
+                    }
+                    
+                    const userData = await userResponse.json();
+                    
+                    const reposResponse = await fetch(userData.repos_url + '?sort=updated&per_page=10');
+                    if (!reposResponse.ok) {
+                        throw new Error('Failed to fetch repositories');
+                    }
+                    const reposData = await reposResponse.json();
+                    
+                    const eventsResponse = await fetch(`https://api.github.com/users/${username}/events/public?per_page=100`);
+                    const eventsData = eventsResponse.ok ? await eventsResponse.json() : [];
+                    allEventsData = eventsData;
+                    
+                    const gistsResponse = await fetch(`https://api.github.com/users/${username}/gists?per_page=10`);
+                    const gistsData = gistsResponse.ok ? await gistsResponse.json() : [];
+                    
+                    displayUserData(userData, reposData, eventsData, gistsData);
+                    
+                    loaderDiv.style.display = 'none';
+                    resultsDiv.style.display = 'block';
+                    
+                } catch (error) {
+
+                    loaderDiv.style.display = 'none';
+                    errorDiv.style.display = 'block';
+                    document.getElementById('error-message').textContent = error.message;
+                }
+            }
+            
+            function displayUserData(userData, reposData, eventsData, gistsData) {
+
+                document.getElementById('avatar').src = userData.avatar_url;
+                document.getElementById('name').textContent = userData.name || userData.login;
+                document.getElementById('login').textContent = userData.login;
+                document.getElementById('bio').textContent = userData.bio || 'No bio available';
+                
+                const locationElement = document.getElementById('location-text');
+                const companyElement = document.getElementById('company-text');
+                
+                if (userData.location) {
+                    locationElement.textContent = userData.location;
+                    document.getElementById('location').style.display = 'block';
+                } else {
+                    document.getElementById('location').style.display = 'none';
+                }
+                
+                if (userData.company) {
+                    companyElement.textContent = userData.company;
+                    document.getElementById('company').style.display = 'block';
+                } else {
+                    document.getElementById('company').style.display = 'none';
+                }
+                
+                const blogLink = document.getElementById('blog');
+                const twitterLink = document.getElementById('twitter');
+                const githubLink = document.getElementById('github-link');
+                
+                if (userData.blog) {
+                    blogLink.href = userData.blog.startsWith('http') ? userData.blog : `https://${userData.blog}`;
+                    blogLink.style.display = 'flex';
+                } else {
+                    blogLink.style.display = 'none';
+                }
+                
+                if (userData.twitter_username) {
+                    twitterLink.href = `https://twitter.com/${userData.twitter_username}`;
+                    twitterLink.style.display = 'flex';
+                } else {
+                    twitterLink.style.display = 'none';
+                }
+                
+                githubLink.href = userData.html_url;
+                
+                document.getElementById('public-repos').textContent = userData.public_repos.toLocaleString();
+                document.getElementById('followers').textContent = abbreviateNumber(userData.followers);
+                document.getElementById('following').textContent = userData.following.toLocaleString();
+                
+                const accountAge = new Date().getFullYear() - new Date(userData.created_at).getFullYear();
+                document.getElementById('account-age').textContent = accountAge;
+                
+                const reposGrid = document.getElementById('repos-grid');
+                reposGrid.innerHTML = '';
+                
+                if (reposData.length === 0) {
+                    reposGrid.innerHTML = '<p>No public repositories found</p>';
+                } else {
+                    reposData.forEach(repo => {
+                        const repoCard = document.createElement('div');
+                        repoCard.className = 'repo-card';
+                        repoCard.innerHTML = `
+                            <a href="${repo.html_url}" class="repo-name" target="_blank">${repo.name}</a>
+                            <p class="repo-desc">${repo.description || 'No description provided'}</p>
+                            <div class="repo-meta">
+                                <span><i class="far fa-star"></i> ${abbreviateNumber(repo.stargazers_count)}</span>
+                                <span><i class="fas fa-code-branch"></i> ${abbreviateNumber(repo.forks_count)}</span>
+                                <span><i class="fas fa-eye"></i> ${abbreviateNumber(repo.watchers_count)}</span>
+                            </div>
+                            ${repo.language ? `<div style="margin-top: 10px;"><span style="background: #58a6ff; color: white; padding: 3px 8px; border-radius: 12px; font-size: 0.8rem;">${repo.language}</span></div>` : ''}
+                        `;
+                        reposGrid.appendChild(repoCard);
+                    });
+                }
+                
+                updateActivityDisplay(eventsData);
+                
+                const filterButtons = document.querySelectorAll('.filter-btn');
+                filterButtons.forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        filterButtons.forEach(b => b.classList.remove('active'));
+                        btn.classList.add('active');
+                        
+                        const filter = btn.dataset.filter;
+                        let filteredEvents = allEventsData;
+                        
+                        if (filter !== 'all') {
+                            filteredEvents = allEventsData.filter(event => event.type === filter);
+                        }
+                        
+                        updateActivityDisplay(filteredEvents);
+                    });
+                });
+                
+                const languageStats = document.getElementById('language-stats');
+                languageStats.innerHTML = '';
+                
+                const languages = {};
+                reposData.forEach(repo => {
+                    if (repo.language) {
+                        languages[repo.language] = (languages[repo.language] || 0) + 1;
+                    }
+                });
+                
+                if (Object.keys(languages).length === 0) {
+                    languageStats.innerHTML = '<p>No language data available</p>';
+                } else {
+
+                    const sortedLanguages = Object.entries(languages)
+                        .sort((a, b) => b[1] - a[1])
+                        .slice(0, 10);
+                    
+                    const total = sortedLanguages.reduce((sum, [_, count]) => sum + count, 0);
+                    
+                    sortedLanguages.forEach(([lang, count]) => {
+                        const percentage = ((count / total) * 100).toFixed(1);
+                        const languageElement = document.createElement('div');
+                        languageElement.className = 'language-stats';
+                        languageElement.innerHTML = `
+                            <div class="language-name">
+                                <span>${lang}</span>
+                                <span>${count} repos (${percentage}%)</span>
+                            </div>
+                            <div class="language-bar">
+                                <div class="language-fill" style="width: ${percentage}%; background: #58a6ff;"></div>
+                            </div>
+                        `;
+                        languageStats.appendChild(languageElement);
+                    });
+                }
+                
+                const gistsList = document.getElementById('gists-list');
+                gistsList.innerHTML = '';
+                
+                if (gistsData.length === 0) {
+                    gistsList.innerHTML = '<p>No public gists found</p>';
+                } else {
+                    gistsData.forEach(gist => {
+                        const gistItem = document.createElement('div');
+                        gistItem.className = 'repo-card';
+                        
+                        const files = Object.keys(gist.files).slice(0, 3);
+                        const description = gist.description || 'No description';
+                        
+                        gistItem.innerHTML = `
+                            <a href="${gist.html_url}" class="repo-name" target="_blank">${gist.id.substring(0, 8)}...</a>
+                            <p class="repo-desc">${description}</p>
+                            <div style="margin-bottom: 10px;">
+                                ${files.map(file => `<span style="background: #30363d; color: #8b949e; padding: 2px 6px; border-radius: 4px; margin-right: 5px; font-size: 0.8rem;">${file}</span>`).join('')}
+                            </div>
+                            <div class="repo-meta">
+                                <span><i class="far fa-file"></i> ${Object.keys(gist.files).length} files</span>
+                                <span><i class="far fa-comment"></i> ${gist.comments} comments</span>
+                            </div>
+                        `;
+                        gistsList.appendChild(gistItem);
+                    });
+                }
+                
+                document.getElementById('last-updated').textContent = `Last updated: ${new Date().toLocaleString()}`;
+            }
+            
+            function updateActivityDisplay(eventsData) {
+                const activityList = document.getElementById('activity-list');
+                const activityCount = document.getElementById('activity-count');
+                activityList.innerHTML = '';
+                
+                if (eventsData.length === 0) {
+                    activityList.innerHTML = '<div class="activity-empty"><i class="fas fa-inbox" style="font-size: 3rem; margin-bottom: 15px;"></i><p>No recent activity found</p></div>';
+                    activityCount.textContent = '0 activities found';
+                    return;
+                }
+                
+                activityCount.textContent = `${eventsData.length} activities found`;
+                
+                const eventsByDate = {};
+                eventsData.forEach(event => {
+                    const eventDate = new Date(event.created_at).toDateString();
+                    if (!eventsByDate[eventDate]) {
+                        eventsByDate[eventDate] = [];
+                    }
+                    eventsByDate[eventDate].push(event);
+                });
+                
+                Object.keys(eventsByDate).sort().reverse().forEach(date => {
+                    const dateEvents = eventsByDate[date];
+                    
+                    const dateSection = document.createElement('div');
+                    dateSection.className = 'activity-day';
+                    
+                    const dateHeader = document.createElement('div');
+                    dateHeader.className = 'activity-date';
+                    dateHeader.textContent = date;
+                    dateSection.appendChild(dateHeader);
+                    
+                    dateEvents.forEach(event => {
+                        const activityItem = document.createElement('div');
+                        activityItem.className = 'activity-item';
+                        
+                        let icon = 'fa-code';
+                        let action = 'performed an action';
+                        let details = '';
+                        
+                        switch(event.type) {
+                            case 'PushEvent':
+                                icon = 'fa-code-commit';
+                                const commitCount = event.payload.commits ? event.payload.commits.length : 0;
+                                action = `pushed ${commitCount} commit${commitCount !== 1 ? 's' : ''} to`;
+                                details = event.payload.commits && event.payload.commits.length > 0 
+                                    ? `"${event.payload.commits[0].message}"` 
+                                    : '';
+                                break;
+                            case 'CreateEvent':
+                                icon = 'fa-plus';
+                                action = `created ${event.payload.ref_type} in`;
+                                details = event.payload.ref ? `"${event.payload.ref}"` : '';
+                                break;
+                            case 'WatchEvent':
+                                icon = 'fa-star';
+                                action = 'starred';
+                                break;
+                            case 'ForkEvent':
+                                icon = 'fa-code-branch';
+                                action = 'forked';
+                                if (event.payload.forkee) {
+                                    details = `to ${event.payload.forkee.full_name}`;
+                                }
+                                break;
+                            case 'IssuesEvent':
+                                icon = 'fa-bug';
+                                action = `${event.payload.action} issue in`;
+                                if (event.payload.issue) {
+                                    details = `"${event.payload.issue.title}"`;
+                                }
+                                break;
+                            case 'PullRequestEvent':
+                                icon = 'fa-code-pull-request';
+                                action = `${event.payload.action} pull request in`;
+                                if (event.payload.pull_request) {
+                                    details = `"${event.payload.pull_request.title}"`;
+                                }
+                                break;
+                            case 'ReleaseEvent':
+                                icon = 'fa-tag';
+                                action = 'released';
+                                if (event.payload.release) {
+                                    details = `"${event.payload.release.name}"`;
+                                }
+                                break;
+                        }
+                        
+                        const time = new Date(event.created_at).toLocaleTimeString();
+                        
+                        activityItem.innerHTML = `
+                            <div class="activity-icon"><i class="fas ${icon}"></i></div>
+                            <div class="activity-details">
+                                <div>${action} <span class="activity-repo">${event.repo.name}</span></div>
+                                ${details ? `<div style="color: #8b949e; margin-top: 5px; font-size: 0.9rem;">${details}</div>` : ''}
+                                <div class="activity-time">${time}</div>
+                            </div>
+                        `;
+                        dateSection.appendChild(activityItem);
+                    });
+                    
+                    activityList.appendChild(dateSection);
+                });
+            }
+            
+            function abbreviateNumber(num) {
+                if (num >= 1000000) {
+                    return (num / 1000000).toFixed(1) + 'M';
+                }
+                if (num >= 1000) {
+                    return (num / 1000).toFixed(1) + 'k';
+                }
+                return num.toString();
+            }
+        });
+    </script>
+</body>
+</html>

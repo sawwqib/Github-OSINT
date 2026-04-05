@@ -3,503 +3,673 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GitHub OSINT</title>
+    <title>GITHUB_OSINT</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+    
+    <!-- Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
     <style>
+        /* --- DESIGN TOKENS & RESET --- */
+        :root {
+            /* Colors */
+            --bg-void: #0a0a0f;
+            --bg-card: #12121a;
+            --bg-muted: #1c1c2e;
+            --neon-green: #00ff88;
+            --neon-pink: #ff00ff;
+            --neon-cyan: #00d4ff;
+            --text-main: #e0e0e0;
+            --text-muted: #6b7280;
+            --border-color: #2a2a3a;
+            
+            /* Typography */
+            --font-display: 'Orbitron', sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+            
+            /* Effects */
+            --glow-sm: 0 0 5px var(--neon-green), 0 0 10px rgba(0, 255, 136, 0.2);
+            --glow-md: 0 0 10px var(--neon-green), 0 0 20px rgba(0, 255, 136, 0.4);
+            --glow-pink: 0 0 5px var(--neon-pink), 0 0 15px rgba(255, 0, 255, 0.4);
+            
+            /* Shapes */
+            --chamfer: polygon(
+                10px 0, 100% 0, 
+                100% calc(100% - 10px), calc(100% - 10px) 100%, 
+                0 100%, 0 10px
+            );
+            --chamfer-sm: polygon(
+                8px 0, 100% 0, 
+                100% calc(100% - 8px), calc(100% - 8px) 100%, 
+                0 100%, 0 8px
+            );
+        }
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
-        
+
         body {
-            background: linear-gradient(135deg, #0d1117 0%, #161b22 100%);
-            color: #c9d1d9;
+            background-color: var(--bg-void);
+            color: var(--text-main);
+            font-family: var(--font-mono);
             min-height: 100vh;
-            padding: 20px;
+            overflow-x: hidden;
+            position: relative;
+            line-height: 1.6;
         }
-        
+
+        /* --- BACKGROUND TEXTURES --- */
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: 
+                linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%),
+                linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            background-size: 100% 2px, 3px 100%;
+            pointer-events: none;
+            z-index: 999;
+        }
+
+        body::after {
+            content: "";
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-image: 
+                linear-gradient(var(--border-color) 1px, transparent 1px),
+                linear-gradient(90deg, var(--border-color) 1px, transparent 1px);
+            background-size: 40px 40px;
+            opacity: 0.1;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        /* --- TYPOGRAPHY & UTILS --- */
+        h1, h2, h3 {
+            font-family: var(--font-display);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
         .container {
             max-width: 1200px;
             margin: 0 auto;
+            padding: 20px;
+            position: relative;
+            z-index: 1;
         }
-        
+
+        .neon-text {
+            color: var(--neon-green);
+            text-shadow: 0 0 5px rgba(0, 255, 136, 0.5);
+        }
+
+        .glitch-wrapper {
+            position: relative;
+            display: inline-block;
+        }
+
+        /* --- HEADER --- */
         header {
             text-align: center;
-            padding: 30px 0;
-            margin-bottom: 30px;
+            padding: 40px 0;
+            margin-bottom: 20px;
+            border-bottom: 1px solid var(--border-color);
         }
-        
+
         h1 {
-            font-size: 2.8rem;
-            background: linear-gradient(90deg, #58a6ff 0%, #8e96ff 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            margin-bottom: 10px;
+            font-size: 3rem;
+            font-weight: 900;
+            position: relative;
+            animation: glitch-skew 3s infinite linear alternate-reverse;
         }
-        
+
+        h1::before, h1::after {
+            content: attr(data-text);
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0.8;
+        }
+
+        h1::before {
+            color: var(--neon-pink);
+            z-index: -1;
+            animation: glitch-effect 2s infinite linear alternate-reverse;
+        }
+
+        h1::after {
+            color: var(--neon-cyan);
+            z-index: -2;
+            animation: glitch-effect 2.5s infinite linear alternate-reverse;
+        }
+
         .tagline {
-            font-size: 1.2rem;
-            color: #8b949e;
-            margin-bottom: 30px;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            letter-spacing: 1px;
+            margin-top: 10px;
         }
-        
+
+        .tagline::before {
+            content: "> ";
+            color: var(--neon-green);
+        }
+
+        /* --- SEARCH BOX --- */
         .search-box {
-            background: rgba(13, 17, 23, 0.8);
-            border-radius: 12px;
-            padding: 25px;
-            margin-bottom: 30px;
-            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
-            border: 1px solid #30363d;
-            text-align: center;
+            background: rgba(18, 18, 26, 0.8);
+            border: 1px solid var(--border-color);
+            clip-path: var(--chamfer);
+            padding: 5px;
+            margin-bottom: 40px;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+            transition: all 0.3s ease;
         }
-        
+
+        .search-box:focus-within {
+            border-color: var(--neon-green);
+            box-shadow: var(--glow-sm);
+        }
+
         .input-group {
             display: flex;
-            max-width: 600px;
-            margin: 0 auto;
+            align-items: center;
         }
-        
+
+        .terminal-prefix {
+            padding: 0 15px;
+            color: var(--neon-green);
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
         input {
             flex: 1;
-            padding: 15px 20px;
+            background: transparent;
             border: none;
-            background: #0d1117;
-            border-radius: 8px 0 0 8px;
-            color: #c9d1d9;
-            font-size: 1rem;
-            border: 1px solid #30363d;
-            border-right: none;
+            color: var(--text-main);
+            font-family: var(--font-mono);
+            font-size: 1.1rem;
+            padding: 15px 0;
+            outline: none;
         }
-        
-        button {
-            padding: 15px 25px;
-            background: linear-gradient(90deg, #238636 0%, #2ea043 100%);
-            color: white;
-            border: none;
-            border-radius: 0 8px 8px 0;
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 1rem;
-            transition: all 0.3s ease;
+
+        input::placeholder {
+            color: var(--text-muted);
+            opacity: 0.5;
         }
-        
-        button:hover {
-            background: linear-gradient(90deg, #2ea043 0%, #3fb950 100%);
-            transform: translateY(-2px);
-        }
-        
-        .results {
-            display: none;
-            background: rgba(13, 17, 23, 0.8);
-            border-radius: 12px;
-            padding: 30px;
-            margin-bottom: 30px;
-            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
-            border: 1px solid #30363d;
-        }
-        
-        .user-header {
-            display: flex;
-            align-items: center;
-            margin-bottom: 30px;
-            padding-bottom: 20px;
-            border-bottom: 1px solid #30363d;
-        }
-        
-        .avatar {
-            width: 100px;
-            height: 100px;
-            border-radius: 50%;
-            margin-right: 25px;
-            border: 3px solid #58a6ff;
-        }
-        
-        .user-info h2 {
-            font-size: 1.8rem;
-            margin-bottom: 5px;
-            color: #58a6ff;
-        }
-        
-        .user-info p {
-            color: #8b949e;
-            margin-bottom: 10px;
-        }
-        
-        .bio {
-            margin: 15px 0;
-            line-height: 1.6;
-            color: #c9d1d9;
-        }
-        
-        .stats {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-            margin-bottom: 30px;
-        }
-        
-        .stat-box {
-            background: #0d1117;
-            border-radius: 8px;
-            padding: 20px;
-            text-align: center;
-            border: 1px solid #30363d;
-            transition: transform 0.3s ease;
-        }
-        
-        .stat-box:hover {
-            transform: translateY(-5px);
-            border-color: #58a6ff;
-        }
-        
-        .stat-value {
-            font-size: 2rem;
+
+        button#search-btn {
+            background: var(--bg-muted);
+            color: var(--neon-green);
+            border: 1px solid var(--neon-green);
+            padding: 10px 30px;
+            font-family: var(--font-display);
             font-weight: 700;
-            color: #58a6ff;
-            margin-bottom: 5px;
+            text-transform: uppercase;
+            cursor: pointer;
+            clip-path: var(--chamfer-sm);
+            transition: all 0.2s steps(4);
+            margin-right: 5px;
         }
-        
-        .stat-label {
-            color: #8b949e;
-            font-size: 0.9rem;
+
+        button#search-btn:hover {
+            background: var(--neon-green);
+            color: var(--bg-void);
+            box-shadow: var(--glow-sm);
+            text-shadow: none;
         }
-        
-        .repos-container {
-            margin-top: 20px;
-        }
-        
-        .section-title {
-            font-size: 1.5rem;
-            margin-bottom: 20px;
-            color: #58a6ff;
-            padding-bottom: 10px;
-            border-bottom: 1px solid #30363d;
-        }
-        
-        .repos-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 20px;
-        }
-        
-        .repo-card {
-            background: #0d1117;
-            border-radius: 8px;
-            padding: 20px;
-            border: 1px solid #30363d;
-            transition: all 0.3s ease;
-        }
-        
-        .repo-card:hover {
-            transform: translateY(-5px);
-            border-color: #58a6ff;
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
-        }
-        
-        .repo-name {
-            font-size: 1.2rem;
-            color: #58a6ff;
-            margin-bottom: 10px;
-            text-decoration: none;
-            display: block;
-        }
-        
-        .repo-name:hover {
-            text-decoration: underline;
-        }
-        
-        .repo-desc {
-            color: #8b949e;
-            margin-bottom: 15px;
-            line-height: 1.5;
-        }
-        
-        .repo-meta {
-            display: flex;
-            justify-content: space-between;
-            color: #8b949e;
-            font-size: 0.9rem;
-        }
-        
+
+        /* --- LOADER & ERROR --- */
         .loader {
             text-align: center;
-            padding: 40px 0;
+            padding: 50px;
             display: none;
         }
-        
+
         .loader i {
-            font-size: 2.5rem;
-            color: #58a6ff;
-            animation: spin 1s linear infinite;
+            font-size: 3rem;
+            color: var(--neon-cyan);
+            animation: spin 1s steps(8) infinite;
         }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        
+
         .error {
-            text-align: center;
+            background: rgba(255, 0, 85, 0.1);
+            border: 1px solid #ff0055;
+            color: #ff0055;
             padding: 20px;
-            background: #da3633;
-            border-radius: 8px;
-            margin-top: 20px;
+            text-align: center;
+            clip-path: var(--chamfer-sm);
+            margin: 20px auto;
+            max-width: 600px;
             display: none;
+            font-weight: bold;
         }
-        
+
+        /* --- RESULTS CONTAINER --- */
+        .results {
+            display: none;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        /* --- USER HEADER (HUD STYLE) --- */
+        .user-header {
+            display: grid;
+            grid-template-columns: 120px 1fr;
+            gap: 30px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            padding: 30px;
+            margin-bottom: 30px;
+            position: relative;
+            /* Holographic effect */
+            backdrop-filter: blur(5px);
+            clip-path: var(--chamfer);
+        }
+
+        .user-header::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            box-shadow: inset 0 0 20px rgba(0, 212, 255, 0.05);
+            pointer-events: none;
+        }
+
+        .avatar-container {
+            position: relative;
+        }
+
+        .avatar {
+            width: 100%;
+            height: auto;
+            aspect-ratio: 1/1;
+            object-fit: cover;
+            border: 2px solid var(--neon-cyan);
+            clip-path: var(--chamfer);
+            filter: grayscale(20%) contrast(110%);
+        }
+
+        .user-info h2 {
+            font-size: 2rem;
+            color: var(--text-main);
+            margin-bottom: 5px;
+        }
+
+        .user-info p {
+            color: var(--text-muted);
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+        }
+
+        .user-info .login-handle {
+            color: var(--neon-cyan);
+            font-family: var(--font-mono);
+            margin-bottom: 15px;
+            display: block;
+        }
+
         .social-links {
             display: flex;
-            gap: 15px;
+            gap: 10px;
             margin-top: 15px;
             flex-wrap: wrap;
         }
-        
+
         .social-link {
-            color: #8b949e;
-            text-decoration: none;
-            font-size: 0.9rem;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            padding: 5px 10px;
-            border: 1px solid #30363d;
-            border-radius: 5px;
-        }
-        
-        .social-link:hover {
-            color: #58a6ff;
-            border-color: #58a6ff;
-        }
-        
-        footer {
-            text-align: center;
-            padding: 20px;
-            color: #8b949e;
-            font-size: 0.9rem;
-            margin-top: 40px;
-        }
-        
-        .last-updated {
             font-size: 0.8rem;
-            color: #8b949e;
-            margin-top: 10px;
-            text-align: right;
+            padding: 5px 10px;
+            border: 1px solid var(--border-color);
+            color: var(--text-muted);
+            text-decoration: none;
+            transition: 0.3s;
+            clip-path: var(--chamfer-sm);
         }
-        
+
+        .social-link:hover {
+            border-color: var(--neon-pink);
+            color: var(--neon-pink);
+            box-shadow: 0 0 8px rgba(255, 0, 255, 0.3);
+        }
+
+        /* --- STATS GRID --- */
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .stat-box {
+            background: var(--bg-muted);
+            border: 1px solid var(--border-color);
+            padding: 20px;
+            text-align: center;
+            clip-path: var(--chamfer);
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.2s;
+        }
+
+        .stat-box:hover {
+            transform: translateY(-2px);
+            border-color: var(--neon-green);
+        }
+
+        .stat-box::after {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 2px;
+            background: var(--neon-green);
+            opacity: 0.5;
+        }
+
+        .stat-value {
+            font-family: var(--font-display);
+            font-size: 2.5rem;
+            color: var(--text-main);
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            color: var(--text-muted);
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 1px;
+        }
+
+        /* --- TABS --- */
         .tabs {
             display: flex;
-            margin-bottom: 20px;
-            border-bottom: 1px solid #30363d;
-            flex-wrap: wrap;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 30px;
+            gap: 5px;
         }
-        
+
         .tab {
-            padding: 10px 20px;
+            padding: 12px 25px;
             cursor: pointer;
-            border-bottom: 3px solid transparent;
+            color: var(--text-muted);
+            font-family: var(--font-display);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            background: rgba(0,0,0,0.3);
+            border: 1px solid transparent;
+            border-bottom: none;
+            transition: 0.3s;
+            clip-path: polygon(10px 0, 100% 0, 100% 100%, 0 100%, 0 10px);
         }
-        
+
+        .tab:hover {
+            color: var(--text-main);
+            background: rgba(255,255,255,0.05);
+        }
+
         .tab.active {
-            border-bottom: 3px solid #58a6ff;
-            color: #58a6ff;
+            color: var(--bg-void);
+            background: var(--neon-green);
+            font-weight: bold;
+            box-shadow: 0 0 15px rgba(0, 255, 136, 0.4);
         }
-        
+
         .tab-content {
             display: none;
         }
         
         .tab-content.active {
             display: block;
+            animation: slideUp 0.3s ease-out;
         }
-        
+
+        /* --- REPOSITORIES --- */
+        .section-title {
+            color: var(--neon-cyan);
+            font-size: 1.5rem;
+            margin-bottom: 25px;
+            border-left: 4px solid var(--neon-cyan);
+            padding-left: 15px;
+            display: flex;
+            align-items: center;
+        }
+
+        .repos-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 25px;
+        }
+
+        .repo-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            padding: 20px;
+            position: relative;
+            transition: 0.3s;
+            clip-path: var(--chamfer);
+        }
+
+        .repo-card:hover {
+            border-color: var(--neon-green);
+            box-shadow: inset 0 0 20px rgba(0, 255, 136, 0.05);
+            transform: translateY(-3px);
+        }
+
+        .repo-name {
+            color: var(--neon-green);
+            font-family: var(--font-display);
+            font-size: 1.2rem;
+            text-decoration: none;
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        .repo-desc {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-bottom: 20px;
+            min-height: 45px;
+        }
+
+        .repo-meta {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            border-top: 1px solid var(--border-color);
+            padding-top: 15px;
+        }
+
+        .repo-meta span i {
+            margin-right: 5px;
+        }
+
+        /* --- ACTIVITY FEED (TERMINAL STYLE) --- */
+        .activity-filter {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-muted);
+            padding: 5px 15px;
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            cursor: pointer;
+            clip-path: var(--chamfer-sm);
+            transition: 0.2s;
+        }
+
+        .filter-btn:hover, .filter-btn.active {
+            border-color: var(--neon-cyan);
+            color: var(--neon-cyan);
+            background: rgba(0, 212, 255, 0.1);
+        }
+
         .activity-day {
             margin-bottom: 30px;
+            border-left: 1px solid var(--border-color);
+            padding-left: 20px;
+            position: relative;
         }
-        
+
         .activity-date {
-            font-size: 1.2rem;
-            color: #58a6ff;
+            font-family: var(--font-display);
+            color: var(--neon-pink);
             margin-bottom: 15px;
-            padding-bottom: 5px;
-            border-bottom: 1px solid #30363d;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
-        
+
         .activity-item {
-            padding: 12px;
-            border-left: 3px solid #30363d;
-            margin: 10px 0;
-            background: rgba(13, 17, 23, 0.5);
-            border-radius: 0 8px 8px 0;
-            display: flex;
-            align-items: flex-start;
+            margin-bottom: 15px;
+            padding: 10px;
+            background: rgba(255,255,255,0.02);
+            border-left: 2px solid transparent;
+            transition: 0.2s;
         }
-        
+
         .activity-item:hover {
-            border-left-color: #58a6ff;
-            background: rgba(88, 166, 255, 0.1);
+            background: rgba(255,255,255,0.05);
+            border-left-color: var(--neon-green);
         }
-        
+
         .activity-icon {
-            margin-right: 15px;
-            width: 30px;
-            text-align: center;
-            color: #58a6ff;
-            font-size: 1.1rem;
-            padding-top: 2px;
+            display: inline-block;
+            width: 25px;
+            color: var(--text-muted);
+            margin-right: 10px;
         }
-        
-        .activity-details {
-            flex: 1;
+
+        .activity-repo {
+            color: var(--neon-cyan);
         }
-        
+
         .activity-time {
-            font-size: 0.85rem;
-            color: #8b949e;
+            font-size: 0.75rem;
+            color: #444;
             margin-top: 5px;
         }
-        
-        .activity-repo {
-            color: #58a6ff;
-            font-weight: 500;
-        }
-        
+
+        /* --- LANGUAGES --- */
         .language-stats {
-            margin-top: 15px;
+            margin-bottom: 20px;
         }
-        
-        .language-bar {
-            height: 8px;
-            background: #30363d;
-            border-radius: 4px;
-            margin: 5px 0;
-            overflow: hidden;
-        }
-        
-        .language-fill {
-            height: 100%;
-            border-radius: 4px;
-        }
-        
+
         .language-name {
             display: flex;
             justify-content: space-between;
+            margin-bottom: 5px;
             font-size: 0.9rem;
+            color: var(--text-main);
         }
-        
-        .activity-empty {
+
+        .language-bar {
+            height: 6px;
+            background: #1a1a24;
+            width: 100%;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .language-fill {
+            height: 100%;
+            background: var(--neon-green);
+            box-shadow: 0 0 10px var(--neon-green);
+        }
+
+        /* --- FOOTER --- */
+        footer {
             text-align: center;
-            padding: 40px;
-            color: #8b949e;
+            padding: 40px 0;
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            border-top: 1px solid var(--border-color);
+            margin-top: 50px;
         }
+
+        /* --- ANIMATIONS --- */
+        @keyframes spin { 100% { transform: rotate(360deg); } }
         
-        .activity-filter {
-            margin-bottom: 20px;
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
+        @keyframes glitch-effect {
+            0% { clip-path: inset(40% 0 61% 0); transform: translate(-2px, 2px); }
+            20% { clip-path: inset(92% 0 1% 0); transform: translate(2px, -2px); }
+            40% { clip-path: inset(43% 0 1% 0); transform: translate(-2px, 2px); }
+            60% { clip-path: inset(25% 0 58% 0); transform: translate(2px, -2px); }
+            80% { clip-path: inset(54% 0 7% 0); transform: translate(-2px, 2px); }
+            100% { clip-path: inset(58% 0 43% 0); transform: translate(2px, -2px); }
         }
-        
-        .filter-btn {
-            padding: 8px 16px;
-            background: #0d1117;
-            border: 1px solid #30363d;
-            border-radius: 20px;
-            color: #8b949e;
-            cursor: pointer;
-            font-size: 0.9rem;
-        }
-        
-        .filter-btn.active {
-            background: #58a6ff;
-            color: white;
-            border-color: #58a6ff;
-        }
-        
-        .activity-count {
-            font-size: 0.9rem;
-            color: #8b949e;
-            margin-bottom: 15px;
-        }
-        
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* --- RESPONSIVE --- */
         @media (max-width: 768px) {
-            .user-header {
-                flex-direction: column;
-                text-align: center;
-            }
-            
-            .avatar {
-                margin-right: 0;
-                margin-bottom: 15px;
-            }
-            
-            .input-group {
-                flex-direction: column;
-            }
-            
-            input {
-                border-radius: 8px;
-                margin-bottom: 10px;
-                border-right: 1px solid #30363d;
-            }
-            
-            button {
-                border-radius: 8px;
-            }
-            
-            .tabs {
-                flex-wrap: wrap;
-            }
-            
-            .tab {
-                padding: 8px 12px;
-                font-size: 0.9rem;
-            }
-            
-            .activity-filter {
-                flex-direction: column;
-            }
+            .user-header { grid-template-columns: 1fr; text-align: center; }
+            .avatar-container { margin: 0 auto; width: 100px; }
+            .social-links { justify-content: center; }
+            h1 { font-size: 2rem; }
+            .input-group { flex-direction: column; background: transparent; border: none; }
+            input { background: var(--bg-card); border: 1px solid var(--border-color); padding: 15px; clip-path: var(--chamfer-sm); margin-bottom: 10px; width: 100%; }
+            .terminal-prefix { display: none; }
+            button#search-btn { width: 100%; margin: 0; }
         }
     </style>
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>GitHub OSINT</h1>
-            <p class="tagline">Deep analysis of GitHub profiles using public data</p>
+            <h1 data-text="GITHUB_OSINT">GITHUB_OSINT</h1>
+            <p class="tagline">Deep packet inspection of public profiles</p>
         </header>
         
         <div class="search-box">
             <div class="input-group">
-                <input type="text" id="username" placeholder="Enter GitHub username">
-                <button id="search-btn">Analyze</button>
+                <span class="terminal-prefix">></span>
+                <input type="text" id="username" placeholder="ENTER_TARGET_USERNAME..." autocomplete="off">
+                <button id="search-btn">INITIALIZE_SCAN</button>
             </div>
         </div>
         
         <div class="loader" id="loader">
-            <i class="fas fa-spinner"></i>
-            <p>Fetching GitHub data...</p>
+            <i class="fas fa-circle-notch"></i>
+            <p style="margin-top: 15px; color: var(--neon-cyan);">ESTABLISHING CONNECTION...</p>
         </div>
         
         <div class="error" id="error">
-            <i class="fas fa-exclamation-circle"></i>
-            <p id="error-message">User not found</p>
+            <i class="fas fa-triangle-exclamation"></i>
+            <span id="error-message">TARGET_NOT_FOUND</span>
         </div>
         
         <div class="results" id="results">
             <div class="user-header">
-                <img id="avatar" class="avatar" src="" alt="Avatar">
+                <div class="avatar-container">
+                    <img id="avatar" class="avatar" src="" alt="Avatar">
+                </div>
                 <div class="user-info">
                     <h2 id="name"></h2>
-                    <p id="login"></p>
-                    <p id="location"><i class="fas fa-map-marker-alt"></i> <span id="location-text"></span></p>
-                    <p id="company"><i class="fas fa-building"></i> <span id="company-text"></span></p>
-                    <div class="bio" id="bio"></div>
+                    <span id="login" class="login-handle"></span>
+                    <p id="location" style="display:none;"><i class="fas fa-map-pin"></i> <span id="location-text"></span></p>
+                    <p id="company" style="display:none;"><i class="fas fa-building"></i> <span id="company-text"></span></p>
+                    <div class="bio" id="bio" style="margin: 15px 0; color: var(--text-main);"></div>
                     <div class="social-links">
-                        <a href="#" id="blog" class="social-link" target="_blank" style="display: none;"><i class="fas fa-link"></i> Website</a>
-                        <a href="#" id="twitter" class="social-link" target="_blank" style="display: none;"><i class="fab fa-twitter"></i> Twitter</a>
-                        <a href="#" id="github-link" class="social-link" target="_blank"><i class="fab fa-github"></i> GitHub Profile</a>
+                        <a href="#" id="blog" class="social-link" target="_blank" style="display: none;">[ LINK ]</a>
+                        <a href="#" id="twitter" class="social-link" target="_blank" style="display: none;">[ TWITTER ]</a>
+                        <a href="#" id="github-link" class="social-link" target="_blank">[ PROFILE_URL ]</a>
                     </div>
                 </div>
             </div>
@@ -507,7 +677,7 @@
             <div class="stats">
                 <div class="stat-box">
                     <div class="stat-value" id="public-repos">0</div>
-                    <div class="stat-label">Public Repositories</div>
+                    <div class="stat-label">Repositories</div>
                 </div>
                 <div class="stat-box">
                     <div class="stat-value" id="followers">0</div>
@@ -519,59 +689,59 @@
                 </div>
                 <div class="stat-box">
                     <div class="stat-value" id="account-age">0</div>
-                    <div class="stat-label">Account Age (years)</div>
+                    <div class="stat-label">Uptime (Years)</div>
                 </div>
             </div>
             
             <div class="tabs">
-                <div class="tab active" data-tab="repos">Repositories</div>
-                <div class="tab" data-tab="activity">Recent Activity</div>
-                <div class="tab" data-tab="languages">Language Analysis</div>
-                <div class="tab" data-tab="gists">Gists</div>
+                <div class="tab active" data-tab="repos">REPOSITORIES</div>
+                <div class="tab" data-tab="activity">ACTIVITY_LOG</div>
+                <div class="tab" data-tab="languages">LANG_STATS</div>
+                <div class="tab" data-tab="gists">GISTS</div>
             </div>
             
             <div class="tab-content active" id="repos-tab">
-                <h3 class="section-title">Popular Repositories</h3>
+                <h3 class="section-title">TOP_REPOSITORIES</h3>
                 <div class="repos-grid" id="repos-grid">
-                    <!-- Repositories will be added here by JavaScript -->
+                    <!-- Repositories injected here -->
                 </div>
             </div>
             
             <div class="tab-content" id="activity-tab">
-                <h3 class="section-title">Recent Public Activity</h3>
+                <h3 class="section-title">PUBLIC_EVENT_LOG</h3>
                 <div class="activity-filter" id="activity-filter">
-                    <button class="filter-btn active" data-filter="all">All Activity</button>
-                    <button class="filter-btn" data-filter="PushEvent">Commits</button>
-                    <button class="filter-btn" data-filter="CreateEvent">Creates</button>
-                    <button class="filter-btn" data-filter="WatchEvent">Stars</button>
-                    <button class="filter-btn" data-filter="ForkEvent">Forks</button>
-                    <button class="filter-btn" data-filter="IssuesEvent">Issues</button>
+                    <button class="filter-btn active" data-filter="all">ALL_EVENTS</button>
+                    <button class="filter-btn" data-filter="PushEvent">COMMITS</button>
+                    <button class="filter-btn" data-filter="CreateEvent">CREATED</button>
+                    <button class="filter-btn" data-filter="WatchEvent">STARS</button>
+                    <button class="filter-btn" data-filter="ForkEvent">FORKS</button>
                 </div>
-                <div class="activity-count" id="activity-count"></div>
                 <div id="activity-list">
-                    <!-- Activity will be added here by JavaScript -->
+                    <!-- Activity injected here -->
                 </div>
             </div>
             
             <div class="tab-content" id="languages-tab">
-                <h3 class="section-title">Programming Language Analysis</h3>
+                <h3 class="section-title">LANGUAGE_DISTRIBUTION</h3>
                 <div id="language-stats">
-                    <!-- Language stats will be added here by JavaScript -->
+                    <!-- Language stats injected here -->
                 </div>
             </div>
             
             <div class="tab-content" id="gists-tab">
-                <h3 class="section-title">Public Gists</h3>
+                <h3 class="section-title">PUBLIC_GISTS</h3>
                 <div id="gists-list">
-                    <!-- Gists will be added here by JavaScript -->
+                    <!-- Gists injected here -->
                 </div>
             </div>
             
-            <p class="last-updated" id="last-updated"></p>
+            <p style="text-align: right; font-size: 0.8rem; color: var(--text-muted); margin-top: 20px;">
+                LAST_SYNC: <span id="last-updated" style="color: var(--neon-green);"></span>
+            </p>
         </div>
         
         <footer>
-            <p>Made With &hearts; By Saqib</p>
+            <p>SYSTEM_STATUS: ONLINE // DESIGNED_BY_SAQIB</p>
         </footer>
     </div>
 
@@ -585,6 +755,7 @@
             const tabs = document.querySelectorAll('.tab');
             let allEventsData = [];
             
+            // Tab Switching Logic
             tabs.forEach(tab => {
                 tab.addEventListener('click', () => {
                     tabs.forEach(t => t.classList.remove('active'));
@@ -598,16 +769,14 @@
                 });
             });
 
+            // Enter Key Listener
             usernameInput.addEventListener('keypress', function(e) {
                 if (e.key === 'Enter') {
                     searchBtn.click();
                 }
             });
-
-            setTimeout(() => {
-                searchBtn.click();
-            }, 500);
             
+            // Search Handler
             searchBtn.addEventListener('click', function() {
                 const username = usernameInput.value.trim();
                 if (username) {
@@ -616,35 +785,26 @@
             });
             
             async function fetchUserData(username) {
-
                 loaderDiv.style.display = 'block';
                 resultsDiv.style.display = 'none';
                 errorDiv.style.display = 'none';
                 
                 try {
-
+                    // Fetch User Data
                     const userResponse = await fetch(`https://api.github.com/users/${username}`);
-                    
-                    if (!userResponse.ok) {
-                        if (userResponse.status === 404) {
-                            throw new Error('User not found');
-                        } else {
-                            throw new Error('Failed to fetch user data');
-                        }
-                    }
-                    
+                    if (!userResponse.ok) throw new Error(userResponse.status === 404 ? 'TARGET_IDENTITY_NOT_FOUND' : 'CONNECTION_FAILURE');
                     const userData = await userResponse.json();
                     
+                    // Fetch Repos
                     const reposResponse = await fetch(userData.repos_url + '?sort=updated&per_page=10');
-                    if (!reposResponse.ok) {
-                        throw new Error('Failed to fetch repositories');
-                    }
                     const reposData = await reposResponse.json();
                     
+                    // Fetch Events
                     const eventsResponse = await fetch(`https://api.github.com/users/${username}/events/public?per_page=100`);
                     const eventsData = eventsResponse.ok ? await eventsResponse.json() : [];
                     allEventsData = eventsData;
                     
+                    // Fetch Gists
                     const gistsResponse = await fetch(`https://api.github.com/users/${username}/gists?per_page=10`);
                     const gistsData = gistsResponse.ok ? await gistsResponse.json() : [];
                     
@@ -654,7 +814,6 @@
                     resultsDiv.style.display = 'block';
                     
                 } catch (error) {
-
                     loaderDiv.style.display = 'none';
                     errorDiv.style.display = 'block';
                     document.getElementById('error-message').textContent = error.message;
@@ -662,98 +821,100 @@
             }
             
             function displayUserData(userData, reposData, eventsData, gistsData) {
-
+                // Basic Info
                 document.getElementById('avatar').src = userData.avatar_url;
                 document.getElementById('name').textContent = userData.name || userData.login;
-                document.getElementById('login').textContent = userData.login;
-                document.getElementById('bio').textContent = userData.bio || 'No bio available';
+                document.getElementById('login').textContent = `@${userData.login}`;
+                document.getElementById('bio').textContent = userData.bio || 'NO_BIO_DATA_AVAILABLE';
                 
-                const locationElement = document.getElementById('location-text');
-                const companyElement = document.getElementById('company-text');
+                // Location & Company
+                const locationElement = document.getElementById('location');
+                const companyElement = document.getElementById('company');
                 
                 if (userData.location) {
-                    locationElement.textContent = userData.location;
-                    document.getElementById('location').style.display = 'block';
+                    document.getElementById('location-text').textContent = userData.location;
+                    locationElement.style.display = 'block';
                 } else {
-                    document.getElementById('location').style.display = 'none';
+                    locationElement.style.display = 'none';
                 }
                 
                 if (userData.company) {
-                    companyElement.textContent = userData.company;
-                    document.getElementById('company').style.display = 'block';
+                    document.getElementById('company-text').textContent = userData.company;
+                    companyElement.style.display = 'block';
                 } else {
-                    document.getElementById('company').style.display = 'none';
+                    companyElement.style.display = 'none';
                 }
                 
+                // Social Links
                 const blogLink = document.getElementById('blog');
                 const twitterLink = document.getElementById('twitter');
                 const githubLink = document.getElementById('github-link');
                 
                 if (userData.blog) {
                     blogLink.href = userData.blog.startsWith('http') ? userData.blog : `https://${userData.blog}`;
-                    blogLink.style.display = 'flex';
+                    blogLink.style.display = 'inline-block';
                 } else {
                     blogLink.style.display = 'none';
                 }
                 
                 if (userData.twitter_username) {
                     twitterLink.href = `https://twitter.com/${userData.twitter_username}`;
-                    twitterLink.style.display = 'flex';
+                    twitterLink.style.display = 'inline-block';
                 } else {
                     twitterLink.style.display = 'none';
                 }
                 
                 githubLink.href = userData.html_url;
                 
-                document.getElementById('public-repos').textContent = userData.public_repos.toLocaleString();
+                // Stats
+                document.getElementById('public-repos').textContent = abbreviateNumber(userData.public_repos);
                 document.getElementById('followers').textContent = abbreviateNumber(userData.followers);
-                document.getElementById('following').textContent = userData.following.toLocaleString();
+                document.getElementById('following').textContent = abbreviateNumber(userData.following);
                 
                 const accountAge = new Date().getFullYear() - new Date(userData.created_at).getFullYear();
                 document.getElementById('account-age').textContent = accountAge;
                 
+                // Render Repos
                 const reposGrid = document.getElementById('repos-grid');
                 reposGrid.innerHTML = '';
                 
                 if (reposData.length === 0) {
-                    reposGrid.innerHTML = '<p>No public repositories found</p>';
+                    reposGrid.innerHTML = '<p style="color:var(--text-muted)">NO_PUBLIC_REPOSITORIES_DETECTED</p>';
                 } else {
                     reposData.forEach(repo => {
                         const repoCard = document.createElement('div');
                         repoCard.className = 'repo-card';
                         repoCard.innerHTML = `
                             <a href="${repo.html_url}" class="repo-name" target="_blank">${repo.name}</a>
-                            <p class="repo-desc">${repo.description || 'No description provided'}</p>
+                            <p class="repo-desc">${repo.description || 'NO_DESCRIPTION_PROVIDED'}</p>
                             <div class="repo-meta">
-                                <span><i class="far fa-star"></i> ${abbreviateNumber(repo.stargazers_count)}</span>
-                                <span><i class="fas fa-code-branch"></i> ${abbreviateNumber(repo.forks_count)}</span>
-                                <span><i class="fas fa-eye"></i> ${abbreviateNumber(repo.watchers_count)}</span>
+                                <span><i class="far fa-star" style="color:var(--neon-green)"></i> ${abbreviateNumber(repo.stargazers_count)}</span>
+                                <span><i class="fas fa-code-branch" style="color:var(--neon-cyan)"></i> ${abbreviateNumber(repo.forks_count)}</span>
+                                <span>${repo.language || 'UNKNOWN'}</span>
                             </div>
-                            ${repo.language ? `<div style="margin-top: 10px;"><span style="background: #58a6ff; color: white; padding: 3px 8px; border-radius: 12px; font-size: 0.8rem;">${repo.language}</span></div>` : ''}
                         `;
                         reposGrid.appendChild(repoCard);
                     });
                 }
                 
+                // Render Activity
                 updateActivityDisplay(eventsData);
                 
+                // Filter Buttons
                 const filterButtons = document.querySelectorAll('.filter-btn');
                 filterButtons.forEach(btn => {
                     btn.addEventListener('click', () => {
                         filterButtons.forEach(b => b.classList.remove('active'));
                         btn.classList.add('active');
-                        
                         const filter = btn.dataset.filter;
-                        let filteredEvents = allEventsData;
-                        
-                        if (filter !== 'all') {
-                            filteredEvents = allEventsData.filter(event => event.type === filter);
-                        }
-                        
+                        const filteredEvents = filter === 'all' 
+                            ? allEventsData 
+                            : allEventsData.filter(event => event.type === filter);
                         updateActivityDisplay(filteredEvents);
                     });
                 });
                 
+                // Render Languages
                 const languageStats = document.getElementById('language-stats');
                 languageStats.innerHTML = '';
                 
@@ -765,13 +926,9 @@
                 });
                 
                 if (Object.keys(languages).length === 0) {
-                    languageStats.innerHTML = '<p>No language data available</p>';
+                    languageStats.innerHTML = '<p style="color:var(--text-muted)">INSUFFICIENT_DATA_FOR_ANALYSIS</p>';
                 } else {
-
-                    const sortedLanguages = Object.entries(languages)
-                        .sort((a, b) => b[1] - a[1])
-                        .slice(0, 10);
-                    
+                    const sortedLanguages = Object.entries(languages).sort((a, b) => b[1] - a[1]).slice(0, 10);
                     const total = sortedLanguages.reduce((sum, [_, count]) => sum + count, 0);
                     
                     sortedLanguages.forEach(([lang, count]) => {
@@ -781,144 +938,117 @@
                         languageElement.innerHTML = `
                             <div class="language-name">
                                 <span>${lang}</span>
-                                <span>${count} repos (${percentage}%)</span>
+                                <span>${percentage}%</span>
                             </div>
                             <div class="language-bar">
-                                <div class="language-fill" style="width: ${percentage}%; background: #58a6ff;"></div>
+                                <div class="language-fill" style="width: ${percentage}%;"></div>
                             </div>
                         `;
                         languageStats.appendChild(languageElement);
                     });
                 }
                 
+                // Render Gists
                 const gistsList = document.getElementById('gists-list');
                 gistsList.innerHTML = '';
                 
                 if (gistsData.length === 0) {
-                    gistsList.innerHTML = '<p>No public gists found</p>';
+                    gistsList.innerHTML = '<p style="color:var(--text-muted)">NO_GISTS_FOUND</p>';
                 } else {
                     gistsData.forEach(gist => {
                         const gistItem = document.createElement('div');
                         gistItem.className = 'repo-card';
-                        
                         const files = Object.keys(gist.files).slice(0, 3);
-                        const description = gist.description || 'No description';
                         
                         gistItem.innerHTML = `
-                            <a href="${gist.html_url}" class="repo-name" target="_blank">${gist.id.substring(0, 8)}...</a>
-                            <p class="repo-desc">${description}</p>
-                            <div style="margin-bottom: 10px;">
-                                ${files.map(file => `<span style="background: #30363d; color: #8b949e; padding: 2px 6px; border-radius: 4px; margin-right: 5px; font-size: 0.8rem;">${file}</span>`).join('')}
-                            </div>
+                            <a href="${gist.html_url}" class="repo-name" target="_blank">GIST_ID: ${gist.id.substring(0, 8)}</a>
+                            <p class="repo-desc">${gist.description || 'UNNAMED_SNIPPET'}</p>
                             <div class="repo-meta">
-                                <span><i class="far fa-file"></i> ${Object.keys(gist.files).length} files</span>
-                                <span><i class="far fa-comment"></i> ${gist.comments} comments</span>
+                                <span><i class="far fa-file"></i> ${Object.keys(gist.files).length} FILES</span>
+                                <span><i class="far fa-comment"></i> ${gist.comments} COMMENTS</span>
                             </div>
                         `;
                         gistsList.appendChild(gistItem);
                     });
                 }
                 
-                document.getElementById('last-updated').textContent = `Last updated: ${new Date().toLocaleString()}`;
+                document.getElementById('last-updated').textContent = new Date().toLocaleTimeString();
             }
             
             function updateActivityDisplay(eventsData) {
                 const activityList = document.getElementById('activity-list');
-                const activityCount = document.getElementById('activity-count');
                 activityList.innerHTML = '';
                 
                 if (eventsData.length === 0) {
-                    activityList.innerHTML = '<div class="activity-empty"><i class="fas fa-inbox" style="font-size: 3rem; margin-bottom: 15px;"></i><p>No recent activity found</p></div>';
-                    activityCount.textContent = '0 activities found';
+                    activityList.innerHTML = '<div style="padding:20px; color:var(--text-muted); text-align:center;">NO_RECENT_ACTIVITY_DETECTED</div>';
                     return;
                 }
-                
-                activityCount.textContent = `${eventsData.length} activities found`;
                 
                 const eventsByDate = {};
                 eventsData.forEach(event => {
                     const eventDate = new Date(event.created_at).toDateString();
-                    if (!eventsByDate[eventDate]) {
-                        eventsByDate[eventDate] = [];
-                    }
+                    if (!eventsByDate[eventDate]) eventsByDate[eventDate] = [];
                     eventsByDate[eventDate].push(event);
                 });
                 
                 Object.keys(eventsByDate).sort().reverse().forEach(date => {
-                    const dateEvents = eventsByDate[date];
-                    
                     const dateSection = document.createElement('div');
                     dateSection.className = 'activity-day';
                     
                     const dateHeader = document.createElement('div');
                     dateHeader.className = 'activity-date';
-                    dateHeader.textContent = date;
+                    dateHeader.textContent = `[ ${date} ]`;
                     dateSection.appendChild(dateHeader);
                     
+                    dateSection.innerHTML += `<div style="height:100%; width:1px; background:var(--border-color); position:absolute; left:0; top:0;"></div>`;
+                    
+                    dateEvents = eventsByDate[date];
                     dateEvents.forEach(event => {
                         const activityItem = document.createElement('div');
                         activityItem.className = 'activity-item';
                         
-                        let icon = 'fa-code';
-                        let action = 'performed an action';
+                        let icon = 'fa-terminal';
+                        let action = 'EXECUTED_ACTION';
                         let details = '';
                         
                         switch(event.type) {
                             case 'PushEvent':
                                 icon = 'fa-code-commit';
                                 const commitCount = event.payload.commits ? event.payload.commits.length : 0;
-                                action = `pushed ${commitCount} commit${commitCount !== 1 ? 's' : ''} to`;
-                                details = event.payload.commits && event.payload.commits.length > 0 
-                                    ? `"${event.payload.commits[0].message}"` 
-                                    : '';
+                                action = `PUSHED ${commitCount} COMMIT(S) TO`;
                                 break;
                             case 'CreateEvent':
                                 icon = 'fa-plus';
-                                action = `created ${event.payload.ref_type} in`;
+                                action = `CREATED ${event.payload.ref_type.toUpperCase()}:`;
                                 details = event.payload.ref ? `"${event.payload.ref}"` : '';
                                 break;
                             case 'WatchEvent':
                                 icon = 'fa-star';
-                                action = 'starred';
+                                action = 'STARRED REPOSITORY';
                                 break;
                             case 'ForkEvent':
                                 icon = 'fa-code-branch';
-                                action = 'forked';
-                                if (event.payload.forkee) {
-                                    details = `to ${event.payload.forkee.full_name}`;
-                                }
+                                action = 'FORKED REPOSITORY';
                                 break;
                             case 'IssuesEvent':
                                 icon = 'fa-bug';
-                                action = `${event.payload.action} issue in`;
-                                if (event.payload.issue) {
-                                    details = `"${event.payload.issue.title}"`;
-                                }
-                                break;
-                            case 'PullRequestEvent':
-                                icon = 'fa-code-pull-request';
-                                action = `${event.payload.action} pull request in`;
-                                if (event.payload.pull_request) {
-                                    details = `"${event.payload.pull_request.title}"`;
-                                }
-                                break;
-                            case 'ReleaseEvent':
-                                icon = 'fa-tag';
-                                action = 'released';
-                                if (event.payload.release) {
-                                    details = `"${event.payload.release.name}"`;
-                                }
+                                action = `${event.payload.action.toUpperCase()} ISSUE:`;
+                                if (event.payload.issue) details = `"${event.payload.issue.title}"`;
                                 break;
                         }
                         
                         const time = new Date(event.created_at).toLocaleTimeString();
                         
                         activityItem.innerHTML = `
-                            <div class="activity-icon"><i class="fas ${icon}"></i></div>
-                            <div class="activity-details">
-                                <div>${action} <span class="activity-repo">${event.repo.name}</span></div>
-                                ${details ? `<div style="color: #8b949e; margin-top: 5px; font-size: 0.9rem;">${details}</div>` : ''}
-                                <div class="activity-time">${time}</div>
+                            <div style="display:flex; align-items:flex-start;">
+                                <i class="fas ${icon} activity-icon"></i>
+                                <div style="flex:1;">
+                                    <div style="color:var(--text-main); margin-bottom:5px;">
+                                        ${action} <span class="activity-repo">${event.repo.name}</span>
+                                    </div>
+                                    ${details ? `<div style="color:var(--text-muted); font-size:0.85rem; margin-bottom:5px;">${details}</div>` : ''}
+                                    <div class="activity-time">TIMESTAMP: ${time}</div>
+                                </div>
                             </div>
                         `;
                         dateSection.appendChild(activityItem);
@@ -929,12 +1059,8 @@
             }
             
             function abbreviateNumber(num) {
-                if (num >= 1000000) {
-                    return (num / 1000000).toFixed(1) + 'M';
-                }
-                if (num >= 1000) {
-                    return (num / 1000).toFixed(1) + 'k';
-                }
+                if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
+                if (num >= 1000) return (num / 1000).toFixed(1) + 'k';
                 return num.toString();
             }
         });
